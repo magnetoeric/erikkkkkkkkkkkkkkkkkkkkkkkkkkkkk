@@ -1,6 +1,8 @@
 title: git hook
-tags: []
-categories: []
+tags:
+  - git
+categories:
+  - git
 date: 2016-04-20 16:13:00
 ---
 ## hook
@@ -76,3 +78,12 @@ commit message should larger than 3 words
 ### pre-commit
 git commit 触发  先于commit-msg，不接收参数
 
+### post-update 
+在服务器执行
+
+### prepare-commit-msg
+效果与pre-commit类似，先于pre-commit执行
+
+## 参考
+   [1] https://www.kernel.org/pub/software/scm/git/docs/githooks.html     
+   [2]https://www.atlassian.com/git/tutorials/git-hooks/local-hooks
