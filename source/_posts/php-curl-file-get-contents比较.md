@@ -1,7 +1,8 @@
 title: php curl file_get_contents比较
 tags:
   - php
-categories: []
+categories:
+  - php
 date: 2016-05-09 20:32:00
 ---
 ## 问题
@@ -45,4 +46,4 @@ do{
 
 相关参考 :
 
-	[fsockopen/curl/file_get_contents效率比较](http://www.nowamagic.net/academy/detail/12220248)
+[fsockopen/curl/file_get_contents效率比较](http://www.nowamagic.net/academy/detail/12220248)
