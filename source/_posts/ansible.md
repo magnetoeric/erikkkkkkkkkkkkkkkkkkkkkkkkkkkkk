@@ -1,10 +1,10 @@
 ---
-title: ansible
+title: 初试ansible
 tags:
 ---
 
 # ansible使用
-ansible可以作为自动化运维工具，一直以来都是知道有这东西，却没有尝试过，现在把吹过的牛逼补回来
+ansible可以作为自动化运维工具，一直以来都是知道有这东西，却没有尝试过，现在是时候把吹过的牛逼补回来了
 
 1、简介
 
@@ -109,13 +109,49 @@ root@a57b8c69e513:~#
 
 启动了２个docker容器后,接下来是配置ansible了
 默认hosts是在/etc/ansible/hosts,添加一组远程主机地址
+
 ```
 ➜  ~ cat /etc/ansible/hosts 
 [docker]
-127.0.0.1:32784
+[docker]
+127.0.0.1:32787 ansible_connection=ssh        ansible_ssh_user=root
 ```
 
+关于inventory的配置，这个[博客](http://sapser.github.io/ansible/2014/07/10/ansible-inventory/)写的很详尽
 
+接下来尝试写playbook，[这篇](http://sapser.github.io/ansible/2014/07/21/ansible-playbook/)介绍的也不错。
+写了一个简单的目录传输的playbook，很简单，功能很简单(其实就是发布系统的目录推送部分，其他功能待完善)
+ansible目录下的两个文件,push_code.yml,update_git_code.sh
+
+```
+➜  ansible cat push_code.yml 
+---
+- hosts: docker
+  remote_user: root
+  tasks:
+  - name: push data
+    copy: src=/data/git_code dest=/data/code/
+            owner=root group=root mode=0644
+```
+
+然后写一个简单的主机发送脚本吧
+
+```
+➜  ansible cat update_git_code.sh 
+#!/bin/bash
+set -x
+cd dirname $0
+git_dir=/data/git_code/
+git --git-dir=$git_dir.git/ --work-tree=$git_dir pull --rebase origin master:master \
+&& ansible-playbook -check  push_code.yml
+
+```
+
+/data/git_code是预先建立好的git代码仓库。这样就实现了一个简单的发布系统。后面有时间结合下之前做的docker-laravel,搞一个自动化的吧
+
+ansible在github上也有关于lamp的例子[ansible-examples](https://github.com/ansible/ansible-examples)
+
+就先这样吧　以后有机会再继续接触
 
 
 
