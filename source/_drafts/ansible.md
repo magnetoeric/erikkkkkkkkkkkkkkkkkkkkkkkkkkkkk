@@ -107,6 +107,16 @@ root@a57b8c69e513:~#
 ```
 第一次登陆需要add到know hosts，以后就是免密码登陆了
 
+启动了２个docker容器后,接下来是配置ansible了
+默认hosts是在/etc/ansible/hosts,添加一组远程主机地址
+```
+➜  ~ cat /etc/ansible/hosts 
+[docker]
+127.0.0.1:32784
+```
+
+
+
 
 
 
