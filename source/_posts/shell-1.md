@@ -1,6 +1,10 @@
 ---
 title: SHELL编程之执行过程
 tags:
+  - shell
+categories:
+  - linux
+date: 2016-05-24 09:35:00
 ---
 
 # SHELL编程之执行过程

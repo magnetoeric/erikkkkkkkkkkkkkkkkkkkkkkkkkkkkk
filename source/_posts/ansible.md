@@ -1,6 +1,10 @@
 ---
 title: 初试ansible
 tags:
+  - ansible
+categories:
+    - linux
+date: 2016-05-22 19:35:00
 ---
 
 # ansible使用
