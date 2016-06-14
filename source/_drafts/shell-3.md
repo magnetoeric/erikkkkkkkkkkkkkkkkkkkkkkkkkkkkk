@@ -2,7 +2,7 @@ title: 	SHELL编程之特殊符号
 date: 2016-06-08 18:36:50
 tags: shell
 ---
-文章
+文章转自[SHELL编程之特殊符号](http://liwei.life/2016/06/06/shell%E7%BC%96%E7%A8%8B%E4%B9%8B%E7%89%B9%E6%AE%8A%E7%AC%A6%E5%8F%B7/)
 
 微博ID：**orroz**
 
@@ -112,3 +112,495 @@ ls: cannot access '/1234': No such file or directory
 shell在产生一个新进程后，新进程的前三个文件描述符都默认指向三个相关文件。这三个文件描述符对应的数组下标分别为0，1，2。0对应的文件叫做标准输入（stdin），1对应的文件叫做标准输出（stdout），2对应的文件叫做标准报错(stderr)。但是实际上，默认跟人交互的输入是键盘、鼠标，输出是显示器屏幕，这些硬件设备对于程序来说都是不认识的，所以操作系统借用了原来“终端”的概念，将键盘鼠标显示器都表现成一个终端文件。于是stdin、stdout和stderr就最重都指向了这所谓的终端文件上。于是，从键盘输入的内容，进程可以从标准输入的0号文件描述符读取，正常的输出内容从1号描述符写出，报错信息被定义为从2号描述符写出。这就是标准输入、标准输出和标准报错对应的描述符编号是0、1、2的原因。这也是为什么对报错进行重定向要使用2>的原因(其实1>也是可以用的)。
 
 明白了以上内容之后，很多重定向的数字魔法就好理解了，比如：
+
+```
+[zorro@zorrozou-pc0 prime]$ find /etc -name passwd > /dev/null 
+find: ‘/etc/docker’: Permission denied
+find: ‘/etc/sudoers.d’: Permission denied
+find: ‘/etc/lvm/cache’: Permission denied
+find: ‘/etc/pacman.d/gnupg/openpgp-revocs.d’: Permission denied
+find: ‘/etc/pacman.d/gnupg/private-keys-v1.d’: Permission denied
+find: ‘/etc/polkit-1/rules.d’: Permission denied
+```
+
+这相当于只看报错信息。
+
+```
+[zorro@zorrozou-pc0 prime]$ find /etc -name passwd 2> /dev/null 
+/etc/default/passwd
+/etc/pam.d/passwd
+/etc/passwd
+```
+
+这相当于只看正确输出信息。
+
+```
+[zorro@zorrozou-pc0 prime]$ find /etc -name passwd 2>&1
+/etc/default/passwd
+find: ‘/etc/docker’: Permission denied
+/etc/pam.d/passwd
+find: ‘/etc/sudoers.d’: Permission denied
+find: ‘/etc/lvm/cache’: Permission denied
+find: ‘/etc/pacman.d/gnupg/openpgp-revocs.d’: Permission denied
+find: ‘/etc/pacman.d/gnupg/private-keys-v1.d’: Permission denied
+find: ‘/etc/polkit-1/rules.d’: Permission denied
+/etc/passwd
+```
+
+将标准报错输出的，重定向到标准输出再输出。
+
+```
+[zorro@zorrozou-pc0 prime]$ echo hello > /tmp/out 
+[zorro@zorrozou-pc0 prime]$ cat /tmp/out
+hello
+[zorro@zorrozou-pc0 prime]$ echo hello2 >> /tmp/out 
+[zorro@zorrozou-pc0 prime]$ cat /tmp/out
+hello
+hello2
+```
+
+“>>”表示追加重定向。
+
+相信大家对&>>、1>&2、？2>&3、6>&8、>>file 2>&1这样的写法应该也都能理解了。进程可以打开多个文件，多个描述符之间都可以进行重定向。当然，输入也可以，比如：3<表示从描述符3读取。下面我们罗列一下其他重定向符号和用法：
+
+**Here Document：**
+
+语法：
+
+```
+<<[-]word
+    here-document
+delimiter
+```
+
+这是一种特殊的输入重定向，重定向的内容并不是来自于某个文件，而是从当前输入读取，直到输入中写入了delimiter字符标记结束。用法：
+
+```
+[zorro@zorrozou-pc0 prime]$ cat << EOF
+> hello world!
+> I am zorro
+> 
+> 
+> 
+> sadfsdf
+> ertert
+> eof
+> EOF
+hello world!
+I am zorro
+
+
+
+sadfsdf
+ertert
+eof
+```
+
+这个例子可以看到，最后cat输出的内容都是在上面写入的内容，而且内容中不包括EOF，因为EOF是标记输入结束的字符串。这个功能在脚本中通常可以用于需要交互式处理的某些命令的输入和文件编辑，比如想在脚本中使用fdisk命令新建一个分区：
+
+```
+[root@zorrozou-pc0 prime]# cat fdisk.sh 
+#!/bin/bash
+
+fdisk /dev/sdb << EOF
+n
+p
+
+
+w
+EOF
+```
+
+当然这个脚本大家千万不要乱执行，可能会修改你的分区表。其中要输入的内容，相信熟悉fdisk命令的人应该都能明白，我就不多解释了。
+
+** Here strings： **
+
+语法：
+
+```
+<<<word
+```
+
+使用方式：
+
+```
+[zorro@zorrozou-pc0 prime]$ cat <<< asdasdasd
+asdasdasd
+```
+
+其实就是将<<<符号后面的字符串当成要输入的内容给cat，而不是定向一个文件描述符。这样是不是就相当于把cat当echo用了？
+
+文件描述符的复制：
+
+复制输入文件描述符：[n]<&word
+
+如果n没有指定数字，则默认复制0号文件描述符。word一般写一个已经打开的并且用来作为输入的描述符数字，表示将制订的n号描述符在制定的描述符上复制一个。如果word写的是“-”符号，则表示关闭这个文件描述符。如果word指定的不是一个用来输入的文件描述符，则会报错。
+
+复制输出文件描述符：[n]>&word
+
+复制一个输出的描述符，字段描述参考上面的输入复制，例子上面已经讲过了。这里还需要知道的就是1>&-表示关闭1号描述符。
+
+**文件描述符的移动**：
+
+移动输入描述符：[n]<&digit-
+
+移动输出描述符：[n]>&digit-
+
+这两个符号的意思都是将原有描述符在新的描述符编号上打开，并且关闭原有描述符。
+
+描述符新建：
+
+新建一个用来输入的描述符：[n]<word
+
+新建一个用来输出的描述符：[n]>word
+
+新建一个用来输入和输出的描述符：[n]<>word
+
+word都应该写一个文件路径，用来表示这个文件描述符的关联文件是谁。
+
+下面我们来看相关的编程例子：
+
+```
+#!/bin/bash
+
+# example 1
+#打开3号fd用来输入，关联文件为/etc/passwd
+exec 3< /etc/passwd
+#让3号描述符成为标准输入
+exec 0<&3
+#此时cat的输入将是/etc/passwd，会在屏幕上显示出/etc/passwd的内容。
+cat
+
+#关闭3号描述符。
+exec 3>&-
+
+# example 2
+#打开3号和4号描述符作为输出，并且分别关联文件。
+exec 3> /tmp/stdout
+
+exec 4> /tmp/stderr
+
+#将标准输入关联到3号描述符，关闭原来的1号fd。
+exec 1>&3-
+#将标准报错关联到4号描述符，关闭原来的2号fd。
+exec 2>&4-
+
+#这个find命令的所有正常输出都会写到/tmp/stdout文件中，错误输出都会写到/tmp/stderr文件中。
+find /etc/ -name "passwd"
+
+#关闭两个描述符。
+exec 3>&-
+exec 4>&-
+```
+
+以上脚本要注意的地方是，一般输入输出重定向都是放到命令后面作为后缀使用，所以如果单纯改变脚本的描述符，需要在前面加exec命令。这种用法也叫做描述符魔术。某些特殊符号还有一些特殊用法，比如：
+
+```
+zorro@zorrozou-pc0 bash]$ > /tmp/out
+```
+
+表示清空文件，当然也可以写成
+
+```
+[zorro@zorrozou-pc0 bash]$ :> /tmp/out
+```
+
+因为”:”是一个内建命令，跟true是同样的功能，所以没有任何输出，所以这个命令清空文件的作用。
+
+## 脚本参数处理
+
+我们在之前的例子中已经简单看过相关参数处理的特殊符号了，再来看一下：
+
+```
+[zorro@zorrozou-pc0 bash]$ cat arg1.sh 
+#!/bin/bash
+
+echo $0
+echo $1
+echo $2
+echo $3
+echo $4
+echo $#
+echo $*
+echo $?
+```
+
+执行结果：
+
+```
+[zorro@zorrozou-pc0 bash]$ ./arg1.sh 111 222 333 444
+./arg1.sh
+111
+222
+333
+444
+4
+111 222 333 444
+0
+```
+
+可以罗列一下：
+
+$0：命令名。
+
+$n：n是一个数字，表示第n个参数。
+
+$#：参数个数。
+
+$*：所有参数列表。
+
+$@：同上。
+
+实际上大家可以认为上面的0,1,2,3,#,*,@,?都是一堆变量名。跟aaa＝1000定义的变量没什么区别，只是他们有特殊含义。所以$@实际上就是对@变量取值，跟$aaa概念一样。所以上述所有取值都可以写成${}的方式，因为bash中对变量取值有两种写法，另外一种是${aaa}。这种写法的好处是对变量名字可以有更明确的界定，比如：
+
+```
+[zorro@zorrozou-pc0 bash]$ aaa=1000
+[zorro@zorrozou-pc0 bash]$ echo $aaa
+1000
+[zorro@zorrozou-pc0 bash]$ echo $aaa0
+
+[zorro@zorrozou-pc0 bash]$ echo ${aaa}0
+10000
+```
+
+内建命令shift可以用来对参数进行位置处理，它会将所有参数都左移一个位置，可以用来进行参数处理。使用例子如下：
+
+```
+[zorro@zorrozou-pc0 ~]$ cat shift.sh
+#!/bin/bash
+
+if [ $# -lt 1 ]
+then
+    echo "Argument num error!" 1>&2
+    echo "Usage ....." 1>&2
+    exit
+fi
+
+while ! [ -z $1 ]
+do
+    echo $1
+    shift
+done
+```
+
+执行效果：
+
+```
+[zorro@zorrozou-pc0 bash]$ ./shift.sh 111 222 333 444 555 666
+111
+222
+333
+444
+555
+666
+```
+
+其他的特殊变量还有：
+
+$?：上一个命令的返回值。
+
+$$：当前shell的PID。
+
+$!：最近一个被放到后台任务管理的进程PID。如：
+
+```
+[zorro@zorrozou-pc0 tmp]$ sleep 3000 &
+[1] 867
+[zorro@zorrozou-pc0 tmp]$ echo $!
+867
+```
+
+$-：列出当前bash的运行参数，比如set -v或者-i这样的参数。
+
+$：”“算是所有特殊变量中最诡异的一个了，在bash脚本刚开始的时候，它可以取到脚本的完整文件名。当执行完某个命令之后，它可以取到，这个命令的最后一个参数。当在检查邮件的时候，这个变量帮你保存当前正在查看的邮件名。
+
+## 数组操作
+bash中可以定义数组，使用方法如下：
+
+```
+[zorro@zorrozou-pc0 bash]$ cat array.sh
+#!/bin/bash
+#定义一个一般数组
+declare -a array
+
+#为数组元素赋值
+array[0]=1000
+array[1]=2000
+array[2]=3000
+array[3]=4000
+
+#直接使用数组名得出第一个元素的值
+echo $array
+#取数组所有元素的值
+echo ${array[*]}
+echo ${array[@]}
+#取第n个元素的值
+echo ${array[0]}
+echo ${array[1]}
+echo ${array[2]}
+echo ${array[3]}
+#数组元素个数
+echo ${#array[*]}
+#取数组所有索引列表
+echo ${!array[*]}
+echo ${!array[@]}
+
+#定义一个关联数组
+declare -A assoc_arr
+
+#为关联数组复制
+assoc_arr[zorro]='zorro'
+assoc_arr[jerry]='jerry'
+assoc_arr[tom]='tom'
+
+#所有操作同上
+echo $assoc_arr
+echo ${assoc_arr[*]}
+echo ${assoc_arr[@]}
+echo ${assoc_arr[zorro]}
+echo ${assoc_arr[jerry]}
+echo ${assoc_arr[tom]}
+echo ${#assoc_arr[*]}
+echo ${!assoc_arr[*]}
+echo ${!assoc_arr[@]}
+```
+
+## 命令行扩展
+
+### 大括号扩展
+用类似枚举的方式创建一些目录：
+
+```
+[zorro@zorrozou-pc0 bash]$ mkdir -p test/zorro/{a,b,c,d}{1,2,3,4}
+[zorro@zorrozou-pc0 bash]$ ls test/zorro/
+a1  a2  a3  a4  b1  b2  b3  b4  c1  c2  c3  c4  d1  d2  d3  d4
+```
+
+可能还有这样用的：
+
+```
+[zorro@zorrozou-pc0 bash]$ mv test/{a,c}.conf
+```
+
+这个命令的意思是：mv test/a.conf test/c.conf
+
+## ~符号扩展
+
+～：在bash中一般表示用户的主目录。cd ~表示回到主目录。cd ~zorro表示回到zorro用户的主目录。
+变量扩展
+
+我们都知道取一个变量值可以用$或者${}。在使用${}的时候可以添加很多对变量进行扩展操作的功能，下面我们就分别来看看。
+
+${aaa:-1000}
+
+这个表示如果变量aaa是空值或者没有赋值，则此表达式取值为1000，aaa变量不被更改，以后还是空。如果aaa已经被赋值，则原值不变：
+
+```
+[zorro@zorrozou-pc0 bash]$ echo $aaa
+
+[zorro@zorrozou-pc0 bash]$ echo ${aaa:-1000}
+1000
+[zorro@zorrozou-pc0 bash]$ echo $aaa
+[zorro@zorrozou-pc0 bash]$ aaa=2000
+[zorro@zorrozou-pc0 bash]$ echo $aaa
+2000
+[zorro@zorrozou-pc0 bash]$ echo ${aaa:-1000}
+2000
+[zorro@zorrozou-pc0 bash]$ echo $aaa
+2000
+```
+
+${aaa:=1000}
+
+跟上面的表达式的区别是，如果aaa未被赋值，则赋值成＝后面的值，其他行为不变：
+
+```
+[zorro@zorrozou-pc0 bash]$ echo $aaa
+
+[zorro@zorrozou-pc0 bash]$ echo ${aaa:=1000}
+1000
+[zorro@zorrozou-pc0 bash]$ echo $aaa
+1000
+```
+
+${aaa:?unset}
+
+判断变量是否未定义或为空，如果符合条件，就提示？后面的字符串。
+
+```
+[zorro@zorrozou-pc0 bash]$ echo ${aaa:?unset}
+-bash: aaa: unset
+[zorro@zorrozou-pc0 bash]$ aaa=1000
+[zorro@zorrozou-pc0 bash]$ echo ${aaa:?unset}
+1000
+```
+
+${aaa:+unset}
+
+如果aaa为空或者未设置，则什么也不做。如果已被设置，则取+后面的值。并不改变原aaa值：
+
+```
+[zorro@zorrozou-pc0 bash]$ aaa=1000
+[zorro@zorrozou-pc0 bash]$ echo ${aaa:+unset}
+unset
+[zorro@zorrozou-pc0 bash]$ echo $aaa
+1000
+```
+
+${aaa:10}
+
+取字符串偏移量，表示取出aaa变量对应字符串的第10个字符之后的字符串，变量原值不变。
+
+```
+[zorro@zorrozou-pc0 bash]$ aaa='/home/zorro/zorro.txt'
+[zorro@zorrozou-pc0 bash]$ echo ${aaa:10}
+o/zorro.txt
+```
+
+${aaa:10:15}
+
+第二个数字表示取多长：
+
+```
+[zorro@zorrozou-pc0 bash]$ echo ${aaa:10:5}
+o/zor
+```
+
+${!B*}
+
+${!B@}
+
+取出所有以B开头的变量名（请注意他们跟数组中相关符号的差别）：
+
+```
+[zorro@zorrozou-pc0 bash]$ echo ${!B*}
+BASH BASHOPTS BASHPID BASH_ALIASES BASH_ARGC BASH_ARGV BASH_CMDS BASH_COMMAND BASH_LINENO BASH_SOURCE BASH_SUBSHELL BASH_VERSINFO BASH_VERSION
+```
+
+${#aaa}
+
+取变量长度：
+
+```
+[zorro@zorrozou-pc0 bash]$ echo ${#aaa}
+21
+```
+
+${parameter#word}
+
+变量paramenter看做字符串从左往右找到第一个word，取其后面的字串：
+
+```
+[zorro@zorrozou-pc0 bash]$ echo ${aaa#/}
+home/zorro/zorro.txt
+```
+
+这里需要注意的是，word必须是一个路径匹配的字符串，比如：
+
+```
+[zorro@zorrozou-pc0 bash]$ echo ${aaa#*zorro}
+/zorro.txt
+```
+
+这个表示删除路径中匹配到的第一个zorro左边的所有字符，而这样是无效的：
+
