@@ -1,7 +1,12 @@
 title: 	SHELL编程之特殊符号
 date: 2016-06-08 18:36:50
-tags: shell
+tags: 
+  - shell
+categories:
+  - shell
+  
 ---
+
 文章转自[SHELL编程之特殊符号](http://liwei.life/2016/06/06/shell%E7%BC%96%E7%A8%8B%E4%B9%8B%E7%89%B9%E6%AE%8A%E7%AC%A6%E5%8F%B7/)
 
 微博ID：**orroz**
@@ -491,7 +496,7 @@ a1  a2  a3  a4  b1  b2  b3  b4  c1  c2  c3  c4  d1  d2  d3  d4
 
 我们都知道取一个变量值可以用$或者${}。在使用${}的时候可以添加很多对变量进行扩展操作的功能，下面我们就分别来看看。
 
-${aaa:-1000}
+`${aaa:-1000}`
 
 这个表示如果变量aaa是空值或者没有赋值，则此表达式取值为1000，aaa变量不被更改，以后还是空。如果aaa已经被赋值，则原值不变：
 
@@ -510,7 +515,7 @@ ${aaa:-1000}
 2000
 ```
 
-${aaa:=1000}
+`${aaa:=1000}`
 
 跟上面的表达式的区别是，如果aaa未被赋值，则赋值成＝后面的值，其他行为不变：
 
@@ -523,7 +528,7 @@ ${aaa:=1000}
 1000
 ```
 
-${aaa:?unset}
+`${aaa:?unset}`
 
 判断变量是否未定义或为空，如果符合条件，就提示？后面的字符串。
 
@@ -535,7 +540,7 @@ ${aaa:?unset}
 1000
 ```
 
-${aaa:+unset}
+`${aaa:+unset}`
 
 如果aaa为空或者未设置，则什么也不做。如果已被设置，则取+后面的值。并不改变原aaa值：
 
@@ -547,7 +552,7 @@ unset
 1000
 ```
 
-${aaa:10}
+`${aaa:10}`
 
 取字符串偏移量，表示取出aaa变量对应字符串的第10个字符之后的字符串，变量原值不变。
 
@@ -557,7 +562,7 @@ ${aaa:10}
 o/zorro.txt
 ```
 
-${aaa:10:15}
+`${aaa:10:15}`
 
 第二个数字表示取多长：
 
@@ -566,9 +571,9 @@ ${aaa:10:15}
 o/zor
 ```
 
-${!B*}
+`${!B*}`
 
-${!B@}
+`${!B@}`
 
 取出所有以B开头的变量名（请注意他们跟数组中相关符号的差别）：
 
@@ -577,8 +582,8 @@ ${!B@}
 BASH BASHOPTS BASHPID BASH_ALIASES BASH_ARGC BASH_ARGV BASH_CMDS BASH_COMMAND BASH_LINENO BASH_SOURCE BASH_SUBSHELL BASH_VERSINFO BASH_VERSION
 ```
 
-${#aaa}
 
+`${ #aaa }`
 取变量长度：
 
 ```
@@ -586,7 +591,7 @@ ${#aaa}
 21
 ```
 
-${parameter#word}
+`${ parameter#word}`
 
 变量paramenter看做字符串从左往右找到第一个word，取其后面的字串：
 
@@ -604,3 +609,362 @@ home/zorro/zorro.txt
 
 这个表示删除路径中匹配到的第一个zorro左边的所有字符，而这样是无效的：
 
+```
+[zorro@zorrozou-pc0 bash]$ echo ${aaa#zorro}
+/home/zorro/zorro.txt
+```
+
+因为此时zorro不是一个路径匹配。另外，这个表达式只能删除匹配到的左边的字符串，保留右边的。
+
+`${ parameter##word}`
+
+这个表达式与上一个的区别是，匹配的不是第一个符合条件的word，而是最后一个：
+
+```
+[zorro@zorrozou-pc0 bash]$ echo ${aaa##*zorro}
+.txt
+[zorro@zorrozou-pc0 bash]$ echo ${aaa##*/}
+zorro.txt
+```
+
+`${ parameter%word}`
+`${ parameter%%word}`
+
+这两个符号相对于上面两个相当于#号换成了%号，操作区别也从匹配删除左边的字符变成了匹配删除右边的字符，如：
+
+```
+[zorro@zorrozou-pc0 bash]$ echo ${aaa%/*}
+/home/zorro
+[zorro@zorrozou-pc0 bash]$ echo ${aaa%t}
+/home/zorro/zorro.tx
+[zorro@zorrozou-pc0 bash]$ echo ${aaa%.*}
+/home/zorro/zorro
+[zorro@zorrozou-pc0 bash]$ echo ${aaa%%z*}
+/home/
+```
+
+以上#号和%号分别是匹配删除哪边的，容易记不住。不过有个窍门是，可以看看他们分别在键盘上的$的哪边？在左边的就是匹配删除左边的，在右边就是匹配删除右边的。
+
+`${ parameter/pattern/string}`
+
+字符串替换，将pattern匹配到的第一个字符串替换成string，pattern可以使用通配符，如：
+
+```
+[zorro@zorrozou-pc0 bash]$ echo $aaa
+/home/zorro/zorro.txt
+[zorro@zorrozou-pc0 bash]$ echo ${aaa/zorro/jerry}
+/home/jerry/zorro.txt
+[zorro@zorrozou-pc0 bash]$ echo ${aaa/zorr?/jerry}
+/home/jerry/zorro.txt
+[zorro@zorrozou-pc0 bash]$ echo ${aaa/zorr*/jerry}
+/home/jerry
+```
+
+`${ parameter//pattern/string}`
+
+意义同上，不过变成了全局替换：
+
+```
+[zorro@zorrozou-pc0 bash]$ echo ${aaa//zorro/jerry}
+/home/jerry/jerry.txt
+
+```
+${parameter^pattern}
+${parameter^^pattern}
+${parameter,pattern}
+${parameter,,pattern}
+```
+
+大小写转换，如：
+
+```
+[zorro@zorrozou-pc0 bash]$ echo $aaa
+abcdefg
+[zorro@zorrozou-pc0 bash]$ echo ${aaa^}
+Abcdefg
+[zorro@zorrozou-pc0 bash]$ echo ${aaa^^}
+ABCDEFG
+[zorro@zorrozou-pc0 bash]$ aaa=ABCDEFG
+[zorro@zorrozou-pc0 bash]$ echo ${aaa,}
+aBCDEFG
+[zorro@zorrozou-pc0 bash]$ echo ${aaa,,}
+abcdefg
+```
+
+有了以上符号后，很多变量内容的处理就不必再使用sed这样的重型外部命令处理了，可以一定程度的提高bash脚本的执行效率。
+
+### 命令置换
+
+命令置换这个概念就是在命令行中引用一个命令的输出给bash执行，就是我们已经用过的符号，如：
+```
+[zorro@zorrozou-pc0 bash]$ echo ls
+ls
+[zorro@zorrozou-pc0 bash]$ `echo ls`
+3 arg1.sh array.sh auth_if.sh cat.sh for2.sh hash.sh name.sh ping.sh redirect.sh shift.sh until.sh
+alias.sh arg.sh auth_case.sh case.sh exit.sh for.sh if_1.sh na.sh prime select.sh test while.sh
+```
+bash会执行放在号中的命令，并将其输出作为bash的命令再执行一遍。在某些情况下双反引号的表达能力有欠缺，比如嵌套的时候就分不清到底是谁嵌套谁？所以bash还提供另一种写法，跟这个符号一样就是$()。
+
+### 算数扩展
+
+$(())
+
+$[]
+
+绝大多数算是表达式可以放在$(())和$[]中进行取值，如：
+
+```
+[zorro@zorrozou-pc0 bash]$ echo $((123+345))
+468
+[zorro@zorrozou-pc0 bash]$ 
+[zorro@zorrozou-pc0 bash]$ 
+[zorro@zorrozou-pc0 bash]$ echo $((345-123))
+222
+[zorro@zorrozou-pc0 bash]$ echo $((345*123))
+42435
+[zorro@zorrozou-pc0 bash]$ echo $((345/123))
+2
+[zorro@zorrozou-pc0 bash]$ echo $((345%123))
+99
+[zorro@zorrozou-pc0 bash]$ i=1
+[zorro@zorrozou-pc0 bash]$ echo $((i++))
+1
+[zorro@zorrozou-pc0 bash]$ echo $((i++))
+2
+[zorro@zorrozou-pc0 bash]$ echo $i
+3
+[zorro@zorrozou-pc0 bash]$ i=1
+[zorro@zorrozou-pc0 bash]$ echo $((++i))
+2
+[zorro@zorrozou-pc0 bash]$ echo $((++i))
+3
+[zorro@zorrozou-pc0 bash]$ echo $i
+3
+```
+
+可以支持的运算符包括：
+
+```
+   id++ id--
+
+   ++id --id
+   - +    
+   ! ~    
+   **     
+   * / %  
+   + -    
+   << >>  
+   <= >= < >
+
+   == !=  
+   &     
+   ^  
+   |    
+   &&    
+   ||   
+   expr?expr:expr
+   = *= /= %= += -= <<= >>= &= ^= |=
+```
+
+另外可以进行算数运算的还有内建命令let：
+
+```
+[zorro@zorrozou-pc0 bash]$ i=0
+[zorro@zorrozou-pc0 bash]$ let ++i
+[zorro@zorrozou-pc0 bash]$ echo $i
+1
+[zorro@zorrozou-pc0 bash]$ i=2
+[zorro@zorrozou-pc0 bash]$ let i=i**2
+[zorro@zorrozou-pc0 bash]$ echo $i
+4
+```
+
+let的另外一种写法是(()):
+
+```
+[zorro@zorrozou-pc0 bash]$ i=0
+[zorro@zorrozou-pc0 bash]$ ((i++))
+[zorro@zorrozou-pc0 bash]$ echo $i
+1
+[zorro@zorrozou-pc0 bash]$ ((i+=4))
+[zorro@zorrozou-pc0 bash]$ echo $i
+5
+[zorro@zorrozou-pc0 bash]$ ((i=i**7))
+[zorro@zorrozou-pc0 bash]$ echo $i
+78125
+```
+
+### 进程置换
+
+<(list) 和 >(list)
+
+这两个符号可以将list的执行结果当成别的命令需要输入或者输出的文件进行操作，比如我想比较两个命令执行结果的区别：
+
+```
+[zorro@zorrozou-pc0 bash]$ diff <(df -h) <(df)
+1,10c1,10
+< Filesystem               Size  Used Avail Use% Mounted on
+< dev                      7.8G     0  7.8G   0% /dev
+< run                      7.9G  1.1M  7.8G   1% /run
+< /dev/sda3                 27G   13G   13G  50% /
+< tmpfs                    7.9G  500K  7.8G   1% /dev/shm
+< tmpfs                    7.9G     0  7.9G   0% /sys/fs/cgroup
+< tmpfs                    7.9G  112K  7.8G   1% /tmp
+< /dev/mapper/fedora-home   99G   76G   18G  82% /home
+< tmpfs                    1.6G   16K  1.6G   1% /run/user/120
+< tmpfs                    1.6G   16K  1.6G   1% /run/user/1000
+---
+> Filesystem              1K-blocks     Used Available Use% Mounted on
+> dev                       8176372        0   8176372   0% /dev
+> run                       8178968     1052   8177916   1% /run
+> /dev/sda3                28071076 13202040  13420028  50% /
+> tmpfs                     8178968      500   8178468   1% /dev/shm
+> tmpfs                     8178968        0   8178968   0% /sys/fs/cgroup
+> tmpfs                     8178968      112   8178856   1% /tmp
+> /dev/mapper/fedora-home 103081248 79381728  18440256  82% /home
+> tmpfs                     1635796       16   1635780   1% /run/user/120
+> tmpfs                     1635796       16   1635780   1% /run/user/1000
+
+```
+这个符号会将相关命令的输出放到/dev/fd中创建的一个管道文件中，并将管道文件作为参数传递给相关命令进行处理。
+
+### 路径匹配扩展
+
+我们已经知道了路径文件名匹配中的*、?、［abc］这样的符号。bash还给我们提供了一些扩展功能的匹配，需要先使用内建命令shopt打开功能开关。支持的功能有：
+
+```
+?(pattern-list)：匹配所给pattern的0次或1次；
+*(pattern-list)：匹配所给pattern的0次以上包括0次；
++(pattern-list)：匹配所给pattern的1次以上包括1次；
+@(pattern-list)：匹配所给pattern的1次；
+!(pattern-list)：匹配非括号内的所给pattern。
+
+```
+
+使用：
+
+```
+[zorro@zorrozou-pc0 bash]$ shopt -u extglob
+[zorro@zorrozou-pc0 bash]$ ls /etc/*(*a)
+/etc/netdata:
+apps_groups.conf  charts.d.conf  netdata.conf
+
+/etc/pcmcia:
+config.opts
+```
+关闭功能之后不能使用：
+
+```
+[zorro@zorrozou-pc0 bash]$ shopt -u extglob
+[zorro@zorrozou-pc0 bash]$ ls /etc/*(*a)
+-bash: syntax error near unexpected token `('
+```
+
+## 其他常用符号
+
+关键字或保留字是一类特殊符号或者单词，它们具有相同的实现属性，即：使用type命令查看其类型都显示key word。
+
+```
+[zorro@zorrozou-pc0 bash]$ type !
+! is a shell keyword
+```
+
+!：当只出现一个叹号的时候代表对表达式（命令的返回值）取非。如：
+
+```
+[zorro@zorrozou-pc0 bash]$ echo hello
+hello
+[zorro@zorrozou-pc0 bash]$ echo $?
+0
+[zorro@zorrozou-pc0 bash]$ ! echo hello
+hello
+[zorro@zorrozou-pc0 bash]$ echo $?
+1
+```
+
+[[]]：这个符号基本跟内建命令test一样，当然我们也知道，内建命令test的另一种写法是[ ]。使用：
+
+```
+[root@zorrozou-pc0 zorro]# [[ -f /etc/passwd ]]
+[root@zorrozou-pc0 zorro]# echo $?
+0
+[root@zorrozou-pc0 zorro]# [[ -f /etc/pass ]]
+[root@zorrozou-pc0 zorro]# echo $?
+1
+```
+
+可以支持的判断参数可以help test查看。
+
+管道”|”或|&：管道其实有两种写法，但是我们一般只常用其中单竖线一种。使用的语法格式：
+
+command1 [ [|⎪|&] command2 ... ]
+管道“｜”的主要作用是将command1的标准输出跟command2的标准输入通过管道(pipe)连接起来。“|&”这种写法的含义是将command1标准输出和标准报错都跟command2的和准输入连接起来，这相当于是command1 2>&1 | command2的简写方式。
+
+&&：用逻辑与关系连接两个命令，如：command1 && command2，表示当command1执行成功才执行command2，否则command2不会执行。
+
+||：用逻辑或关系连接两个命令，如：command1 || command2，表示当command1执行不成功才执行command2，否则command2不会执行。
+
+有了这两个符号，很多if判断都不用写了。
+
+&：一般作为一个命令或者lists的后缀，表明这个命令的执放到jobs中跑，bash不必wait进程。
+
+;：作为命令或者lists的后缀，主要起到分隔多个命令用的，效果跟回车是一样的。
+
+(list)：放在()中执行的命令将在一个subshell环境中执行，这样的命令将打开一个bash子进程执行。即使要执行的是内建命令，也要打开一个subshell的子进程。另外要注意的是，当内建命令前后有管道符号连接的时候，内建命令本身也是要放在subshell中执行的。这个subshell子进程的执行环境基本上是父进程的复制，除了重置了信号的相关设置。bash编程的信号设置使用内建命令trap，将在后续文章中详细说明。
+
+{ list; }：大括号作为函数语法结构中的标记字段和list标记字段，是一个关键字。在大括号中要执行的命令列表（list）会放在当前执行环境中执行。命令列表必须以一个换行或者分号作为标记结束。
+
+## 转义字符
+
+转义字符很重要，所以需要单独拿出来重点说一下。既然bash给我们提供了这么多的特殊字符，那么这些字符对于bash来说就是需要进行特殊处理的。比如我们想创建一个文件名中包含*的文件：
+
+```
+[zorro@zorrozou-pc0 bash]$ ls
+3         arg1.sh  array.sh      auth_if.sh  cat.sh   for2.sh  hash.sh  name.sh  ping.sh  read.sh      select.sh  test      while.sh
+alias.sh  arg.sh   auth_case.sh  case.sh     exit.sh  for.sh   if_1.sh  na.sh    prime    redirect.sh  shift.sh   until.sh
+[zorro@zorrozou-pc0 bash]$ touch *sh
+```
+这个命令会被bash转义成，对所有文件名以sh结尾的文件做touch操作。那究竟怎么创建这个文件呢？使用转义符：
+
+```
+[zorro@zorrozou-pc0 bash]$ touch \*sh
+[zorro@zorrozou-pc0 bash]$ ls
+3         arg1.sh  array.sh      auth_if.sh  cat.sh   for2.sh  hash.sh  name.sh  ping.sh  read.sh      select.sh  shift.sh  until.sh
+alias.sh  arg.sh   auth_case.sh  case.sh     exit.sh  for.sh   if_1.sh  na.sh    prime    redirect.sh  '*sh'      test      while.sh
+```
+
+创建了一个叫做*sh的文件，\就是转义符，它可以转义后面的一个字符。如果我想创建一个名字叫\的文件，就应该：
+
+```
+[zorro@zorrozou-pc0 bash]$ touch \\
+[zorro@zorrozou-pc0 bash]$ ls
+'\'  alias.sh  arg.sh    auth_case.sh  case.sh  exit.sh  for.sh   if_1.sh  na.sh    prime    redirect.sh  '*sh'     test      while.sh
+3    arg1.sh   array.sh  auth_if.sh    cat.sh   for2.sh  hash.sh  name.sh  ping.sh  read.sh  select.sh    shift.sh  until.sh
+```
+如何删除sh呢？rm sh？注意到了么？一不小心就会误操作！正确的做法是:
+
+```
+[zorro@zorrozou-pc0 bash]$ rm \*sh
+```
+
+可以成功避免这种误操作的习惯是，不要用特殊字符作为文件名或者目录名，不要给自己犯错误的机会！
+
+另外”也是非常重要的转义字符，\只能转义其后面的一个字符，而”可以转义其扩起来的所有字符。另外””也能起到一部分的转义作用，只是它的转义能力没有”强。”和
+“”的区别是：”可以转义所有字符，而””不能对$字符、命令置换“和\转义字符进行转义。
+
+## 最后
+
+先补充一个关于正则表达式的说明：
+
+很多初学者容易将bash的特殊字符和正则表达式搞混，尤其是*、?、[]这些符号。实际上我们要明白，正则表达式跟bash的通配符和特殊符号没有任何关系。bash本身并不支持正则表达式。那些支持正在表达式的都是外部命令，比如grep、sed、awk这些高级文件处理命令。正则表达式是由这些命令自行处理的，而bash并不对正则表达式做任何解析和解释。
+
+关于正则表达式的话题，我们就不在bash编程系列文章中讲解了，不过未来可能会在讲解sed、awk这样的高级文本处理命令中说明。
+
+通过本文我们学习了bash的特殊符号相关内容，主要包括的知识点为：
+
+1. 输入输出重定向以及描述符魔术。
+2. bash脚本的命令行参数处理。
+3. bash脚本的数组和关联数组。
+4. bash的各种其他扩展特殊字符操作。
+5. 转义字符介绍。
+6. 正则表达式和bash特殊字符的区别。
