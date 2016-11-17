@@ -1,3 +1,10 @@
+title: 并查集
+tags:
+  - 数据结构
+categories:
+  - other
+date: 2016-11-17 10:47:00
+---
 # 数据结构之并查集
 文章转自[数据结构之并查集](http://dongxicheng.org/structure/union-find-set/);
 
