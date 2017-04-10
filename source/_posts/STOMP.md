@@ -3,7 +3,6 @@ category: other
 date: 2017-04-05 14:17:00
 
 ---
-# STOMP 协议
 ## STOMP 概述
 STOMP即Simple (or Streaming) Text Orientated Messaging Protocol，简单(流)文本定向消息协议，它提供了一个可互操作的连接格式，允许STOMP客户端与任意STOMP消息代理（Broker）进行交互。STOMP协议由于设计简单，易于开发客户端，因此在多种语言和多种平台上得到广泛地应用。
 

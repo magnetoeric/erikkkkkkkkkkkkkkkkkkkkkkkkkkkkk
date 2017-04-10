@@ -1,6 +1,7 @@
 title: Linux 技巧：让进程在后台可靠运行的几种方法
 tags:
-  - linux,shell
+  - linux
+  - shell
 category: linux
 date: 2015-08-30 00:26:00
 

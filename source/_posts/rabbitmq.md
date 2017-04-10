@@ -1,5 +1,11 @@
+title: rabbitmq
+tags:
+  - rabbitmq
+category: other
+date: 2017-01-04 19:59:00
 
-##　名词解释
+---
+## 名词解释
 从AMQP协议可以看出，MessageQueue、Exchange和Binding构成了AMQP协议的核心，下面我们就围绕这三个主要组件    从应用使用的角度全面的介绍如何利用Rabbit MQ构建消息队列以及使用过程中的注意事项。
 
 ### MessageQueue
@@ -62,10 +68,3 @@ Rabbit MQ默认是不持久队列、Exchange、Binding以及队列中的消息�
     声明 exchange 后未绑定任何 queue ，此时发送到该 exchange 上的 message 均被 blackholed ；
     声明 exchange 后绑定了 queue ，但发送到该 exchange 上的 message 所使用的 routing_key 不匹配任何 binding_key ，则 blackholed 。
 
-
-2.mandatory 的作用？
-      决定 message 将被如何处理，是被 exchange 直接丢弃还是由其发回给 producer （Basic.Return+Content-Header+Content-Body）。
-
-
-3.mandatory 和 Publisher confirm 机制的区别？
-      Publisher confirm 机制是用来确认 message 的可靠投递，mandatory 参数是用来确保在 queue 不存在的情况下，message 不会被 blackhole 。
