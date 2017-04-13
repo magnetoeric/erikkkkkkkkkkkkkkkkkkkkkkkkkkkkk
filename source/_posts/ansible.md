@@ -1,4 +1,4 @@
----
+
 title: 初试ansible
 tags:
   - ansible
@@ -58,6 +58,7 @@ ansible是自动化运维工具，基于Python开发，集合了众多运维工�
 ### 搭建多个可操作的host
 没有机器，暂时用docker替代了
 一个简单的sshd的Dockerfile
+
 ```
 FROM ubuntu:14.04
 MAINTAINER ericwang 123048591@qq.com
@@ -72,7 +73,9 @@ EXPOSE 22
 CMD ["/usr/sbin/sshd", "-D"]
 
 ```
+
 build脚本
+
 ```
 #!/bin/bash
 docker build  --tag sshd-server ./
@@ -89,6 +92,7 @@ cat ~/.ssh/id_rsa.pub | docker exec --user=root -i $container_id  sh -c 'cat >> 
 docker exec $container_id chmod 600 /root/.ssh/authorized_keys
 
 ```
+
 练习的时候才发现docker exec使用流的时候有些问题，google看到[这篇文章](https://forums.docker.com/t/docker-exec-api-using-stdin-to-upload-a-file/748)，直接使用exec command >> file这种形式是不行的，会把流输出到宿主系统，完全就是错误的。期待那位linux　大神继续更新shell相关的博文，更深入地理解linux
 
 ./build.sh 创建image,然后,./run.sh　这就创建了一个容器,也就是用来测试的ansible host。多次run后，就有了多个host机器了
