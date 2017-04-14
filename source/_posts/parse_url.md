@@ -5,7 +5,6 @@ categories:
     - php
 date: 2017-04-12 19:35:00
 ---
-### parse_url
 很多人喜欢用正则提取url中的domain,path及参数信息
 实际上php已经提供了对url解析的方法:[parse_url](http://php.net/manual/en/function.parse-url.php)
 一个url可以分解成如下几个部分
