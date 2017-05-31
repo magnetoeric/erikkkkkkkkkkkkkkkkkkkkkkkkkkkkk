@@ -23,7 +23,7 @@ password=pass
 那么使用parse_ini_file读取也很简单
 
 ```
-$config = parse_ini_file('db',true);
+$config = parse_ini_file('db.ini',true);
 print_r($config);exit;
 ```
 
